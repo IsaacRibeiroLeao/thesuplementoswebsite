@@ -1,5 +1,5 @@
 import { MapPin, Truck, Package } from "lucide-react"
-import { siteConfig, getWhatsAppLink } from "@/lib/site-config"
+import { getWhatsAppLink } from "@/lib/site-config"
 
 const highlights = [
   { icon: MapPin, title: "Teresina & Timon", description: "Entrega rapida na regiao" },
@@ -9,7 +9,7 @@ const highlights = [
 
 export function DeliverySection() {
   return (
-    <section className="relative overflow-hidden py-20">
+    <section id="entrega" className="relative overflow-hidden py-20">
       <div className="pointer-events-none absolute inset-0 bg-primary/5" />
       <div className="pointer-events-none absolute -top-20 -right-20 h-[300px] w-[300px] rounded-full bg-primary/10 blur-[80px]" />
 

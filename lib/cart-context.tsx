@@ -1,7 +1,9 @@
 "use client"
 
-import React, { createContext, useContext, useState, useCallback } from "react"
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react"
 import { formatPrice, getWhatsAppLink } from "@/lib/site-config"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/lib/auth-context"
 
 export interface CartItem {
   id: string
@@ -23,13 +25,18 @@ interface CartContextType {
   totalItems: number
   totalPrice: number
   getWhatsAppCheckoutLink: () => string
+  sendOrder: () => Promise<void>
+  lastOrder: CartItem[] | null
+  loadLastOrder: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { user } = useAuth()
   const [items, setItems] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [lastOrder, setLastOrder] = useState<CartItem[] | null>(null)
 
   const addItem = useCallback((newItem: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
@@ -85,21 +92,87 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return getWhatsAppLink(message)
   }, [items, totalPrice])
 
+  const fetchLastOrder = useCallback(async () => {
+    if (!user) {
+      setLastOrder(null)
+      return
+    }
+    try {
+      const { data } = await supabase
+        .from("orders")
+        .select("items")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single()
+
+      if (data?.items && Array.isArray(data.items)) {
+        setLastOrder(data.items as unknown as CartItem[])
+      } else {
+        setLastOrder(null)
+      }
+    } catch {
+      setLastOrder(null)
+    }
+  }, [user])
+
+  useEffect(() => {
+    fetchLastOrder()
+  }, [fetchLastOrder])
+
+  const loadLastOrder = useCallback(() => {
+    if (!lastOrder || lastOrder.length === 0) return
+    setItems(lastOrder.map((item) => ({ ...item })))
+    setIsOpen(true)
+  }, [lastOrder])
+
+  const sendOrder = useCallback(async () => {
+    if (items.length === 0) return
+
+    try {
+      const orderItems = items.map((item) => ({
+        name: item.name,
+        brand: item.brand,
+        price: item.price,
+        quantity: item.quantity,
+        type: item.type,
+      }))
+
+      await supabase.from("orders").insert({
+        user_id: user?.id ?? null,
+        items: orderItems,
+        total: totalPrice,
+        status: "pending",
+      })
+    } catch (err) {
+      console.error("Failed to save order:", err)
+    }
+
+    const link = getWhatsAppCheckoutLink()
+    window.open(link, "_blank")
+  }, [items, totalPrice, getWhatsAppCheckoutLink, user])
+
+  const contextValue = useMemo(
+    () => ({
+      items,
+      isOpen,
+      setIsOpen,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice,
+      getWhatsAppCheckoutLink,
+      sendOrder,
+      lastOrder,
+      loadLastOrder,
+    }),
+    [items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, getWhatsAppCheckoutLink, sendOrder, lastOrder, loadLastOrder]
+  )
+
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        isOpen,
-        setIsOpen,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
-        getWhatsAppCheckoutLink,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   )

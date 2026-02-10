@@ -12,6 +12,7 @@ import { Footer } from "@/components/footer"
 import { FloatingWhatsApp } from "@/components/floating-whatsapp"
 import { CartDrawer } from "@/components/cart-drawer"
 import { CartProvider } from "@/lib/cart-context"
+import { AuthProvider } from "@/lib/auth-context"
 import type { Category } from "@/lib/site-config"
 
 export default function Page() {
@@ -26,6 +27,7 @@ export default function Page() {
   }
 
   return (
+    <AuthProvider>
     <CartProvider>
       <main>
         <Header />
@@ -40,5 +42,6 @@ export default function Page() {
         <CartDrawer />
       </main>
     </CartProvider>
+    </AuthProvider>
   )
 }

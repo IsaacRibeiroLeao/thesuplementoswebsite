@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Instagram } from "lucide-react"
+// Instagram icon rendered inline as SVG
 import { siteConfig, getWhatsAppLink } from "@/lib/site-config"
 
 export function Footer() {
@@ -38,7 +38,7 @@ export function Footer() {
               className="text-muted-foreground transition-colors hover:text-primary"
               aria-label="Instagram"
             >
-              <Instagram className="h-5 w-5" />
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
             </a>
             <a
               href={getWhatsAppLink(siteConfig.whatsappGreeting)}
