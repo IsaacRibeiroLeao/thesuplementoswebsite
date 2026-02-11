@@ -124,7 +124,7 @@ export function CartDrawer() {
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
             >
               <Mail className="h-4 w-4" />
-              Cadastrar email para salvar pedidos
+              Entrar ou cadastrar com email
             </button>
           )}
 

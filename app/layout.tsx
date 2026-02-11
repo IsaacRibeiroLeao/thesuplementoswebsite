@@ -11,6 +11,10 @@ export const metadata: Metadata = {
     "Os melhores suplementos com os melhores precos. Whey Protein, Creatina, Pre-treinos e muito mais. Entrega rapida em Teresina, Timon e todo o Brasil.",
   keywords:
     "suplementos Teresina, whey protein Piaui, creatina Timon, suplementos esportivos, THE's suplementos",
+  icons: {
+    icon: "/521855140_18513816808021683_2074754106363160959_n.jpg",
+    apple: "/521855140_18513816808021683_2074754106363160959_n.jpg",
+  },
   openGraph: {
     title: "THE's Suplementos | Sua evolucao comeca aqui",
     description:

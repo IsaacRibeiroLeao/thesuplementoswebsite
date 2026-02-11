@@ -39,7 +39,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        emailRedirectTo: typeof globalThis.window !== "undefined" ? `${globalThis.window.location.origin}/auth/callback` : undefined,
       },
     })
     if (error) return { error: error.message }
