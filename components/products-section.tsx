@@ -16,9 +16,10 @@ const filters: { id: Category | "todos"; label: string }[] = [
 interface ProductsSectionProps {
   activeFilter: Category | "todos"
   onFilterChange: (filter: Category | "todos") => void
+  onAdd?: (name: string) => void
 }
 
-export function ProductsSection({ activeFilter, onFilterChange }: ProductsSectionProps) {
+export function ProductsSection({ activeFilter, onFilterChange, onAdd }: ProductsSectionProps) {
   const { addItem } = useCart()
   const filteredProducts =
     activeFilter === "todos" ? products : products.filter((p) => p.category === activeFilter)
@@ -92,7 +93,7 @@ export function ProductsSection({ activeFilter, onFilterChange }: ProductsSectio
                   <div className="mt-3 flex gap-2">
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
                         addItem({
                           id: product.id,
                           name: product.name,
@@ -100,7 +101,8 @@ export function ProductsSection({ activeFilter, onFilterChange }: ProductsSectio
                           price: product.price,
                           type: "product",
                         })
-                      }
+                        onAdd?.(product.name)
+                      }}
                       className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                     >
                       <ShoppingCart className="h-4 w-4" />

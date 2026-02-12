@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { X, Plus, Minus, Trash2, ShoppingCart, Mail, LogOut, RotateCcw } from "lucide-react"
-import { useCart } from "@/lib/cart-context"
+import { X, Plus, Minus, Trash2, ShoppingCart, Heart, RotateCcw, Check, ArrowRight } from "lucide-react"
+import { useCart, type FavoriteOrder } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
 import { formatPrice } from "@/lib/site-config"
 
@@ -19,26 +19,38 @@ export function CartDrawer() {
     sendOrder,
     lastOrder,
     loadLastOrder,
+    favorites,
+    saveFavorite,
+    loadFavorite,
+    deleteFavorite,
   } = useCart()
-  const { user, signInWithEmail, signOut, loading: authLoading } = useAuth()
-  const [emailInput, setEmailInput] = useState("")
-  const [authMsg, setAuthMsg] = useState("")
-  const [showLogin, setShowLogin] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const { user } = useAuth()
+  const [showFavInput, setShowFavInput] = useState(false)
+  const [favName, setFavName] = useState("")
+  const [showFavList, setShowFavList] = useState(false)
 
-  async function handleEmailLogin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    if (!emailInput.trim()) return
-    setSubmitting(true)
-    setAuthMsg("")
-    const { error } = await signInWithEmail(emailInput.trim())
+  async function handleSaveFavorite() {
+    const name = favName.trim() || "Meu pedido favorito"
+    const { error } = await saveFavorite(name)
     if (error) {
-      setAuthMsg(error)
+      alert(error)
     } else {
-      setAuthMsg("Link enviado! Verifique seu email.")
-      setEmailInput("")
+      setFavName("")
+      setShowFavInput(false)
     }
-    setSubmitting(false)
+  }
+
+  function handleLoadFavorite(fav: FavoriteOrder) {
+    if (items.length > 0) {
+      if (!confirm("Isso vai substituir os itens atuais do carrinho. Continuar?")) return
+    }
+    loadFavorite(fav)
+    setShowFavList(false)
+  }
+
+  function handleDeleteFavorite(fav: FavoriteOrder) {
+    if (!confirm(`Excluir "${fav.name}"?`)) return
+    deleteFavorite(fav.id)
   }
 
   if (!isOpen) return null
@@ -70,75 +82,78 @@ export function CartDrawer() {
           </button>
         </div>
 
-        {/* Auth section */}
-        <div className="border-b border-border px-6 py-3">
-          {authLoading ? null : user ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-primary" />
-                <span className="truncate text-muted-foreground">{user.email}</span>
-              </div>
+        {/* Quick actions */}
+        {user && (
+          <div className="flex gap-2 border-b border-border px-6 py-3">
+            {lastOrder && lastOrder.length > 0 && (
               <button
                 type="button"
-                onClick={signOut}
-                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                onClick={loadLastOrder}
+                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
               >
-                <LogOut className="h-3 w-3" />
-                Sair
+                <RotateCcw className="h-3.5 w-3.5" />
+                Ultimo pedido
               </button>
-            </div>
-          ) : showLogin ? (
-            <div>
-              <form onSubmit={handleEmailLogin} className="flex gap-2">
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="seu@email.com"
-                  required
-                  className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-                >
-                  {submitting ? "..." : "Enviar"}
-                </button>
-              </form>
-              {authMsg && (
-                <p className="mt-1.5 text-xs text-muted-foreground">{authMsg}</p>
-              )}
+            )}
+            {favorites.length > 0 && (
               <button
                 type="button"
-                onClick={() => { setShowLogin(false); setAuthMsg("") }}
-                className="mt-1 text-xs text-muted-foreground underline hover:text-foreground"
+                onClick={() => setShowFavList(!showFavList)}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  showFavList
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
+                }`}
               >
-                Cancelar
+                <Heart className="h-3.5 w-3.5" />
+                Favoritos ({favorites.length})
               </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowLogin(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-            >
-              <Mail className="h-4 w-4" />
-              Entrar ou cadastrar com email
-            </button>
-          )}
+            )}
+          </div>
+        )}
 
-          {user && lastOrder && lastOrder.length > 0 && (
-            <button
-              type="button"
-              onClick={loadLastOrder}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Repetir ultimo pedido
-            </button>
-          )}
-        </div>
+        {/* Favorites list */}
+        {showFavList && favorites.length > 0 && (
+          <div className="border-b border-border px-6 py-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Pedidos favoritos
+            </p>
+            <div className="max-h-40 space-y-2 overflow-y-auto">
+              {favorites.map((fav) => {
+                const count = fav.items.reduce((s, i) => s + i.quantity, 0)
+                const total = fav.items.reduce((s, i) => s + i.price * i.quantity, 0)
+                return (
+                  <div key={fav.id} className="flex items-center gap-2 rounded-lg border border-border/60 bg-card">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadFavorite(fav)}
+                      className="flex flex-1 items-center gap-3 p-2.5 text-left transition-colors hover:bg-secondary/50"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Heart className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{fav.name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {count} {count === 1 ? "item" : "itens"} · R$ {formatPrice(total)}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-primary/60" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFavorite(fav)}
+                      className="shrink-0 p-2.5 text-muted-foreground transition-colors hover:text-destructive"
+                      aria-label="Excluir favorito"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
@@ -146,6 +161,16 @@ export function CartDrawer() {
             <p className="text-center text-muted-foreground">
               Seu carrinho esta vazio
             </p>
+            {user && favorites.length > 0 && !showFavList && (
+              <button
+                type="button"
+                onClick={() => setShowFavList(true)}
+                className="flex items-center gap-2 rounded-lg border border-primary/30 px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+              >
+                <Heart className="h-4 w-4" />
+                Carregar um favorito
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setIsOpen(false)}
@@ -240,13 +265,55 @@ export function CartDrawer() {
                 Enviar Pedido via WhatsApp
               </button>
 
-              <button
-                type="button"
-                onClick={clearCart}
-                className="mt-2 w-full rounded-lg py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                Limpar Carrinho
-              </button>
+              {/* Save favorite / Clear */}
+              <div className="mt-3 flex flex-col gap-1">
+                {user && (
+                  showFavInput ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={favName}
+                        onChange={(e) => setFavName(e.target.value)}
+                        placeholder="Nome do favorito"
+                        autoFocus
+                        onKeyDown={(e) => { if (e.key === "Enter") handleSaveFavorite() }}
+                        className="flex-1 rounded-lg border border-primary/30 bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveFavorite}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowFavInput(false); setFavName("") }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowFavInput(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/20 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Salvar como favorito
+                    </button>
+                  )
+                )}
+
+                <button
+                  type="button"
+                  onClick={clearCart}
+                  className="w-full rounded-lg py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  Limpar Carrinho
+                </button>
+              </div>
             </div>
           </>
         )}

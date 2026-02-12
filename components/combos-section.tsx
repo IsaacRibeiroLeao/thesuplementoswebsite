@@ -4,7 +4,7 @@ import { Package, ShoppingCart } from "lucide-react"
 import { combos, getWhatsAppLink, getComboWhatsAppMessage, formatPrice } from "@/lib/site-config"
 import { useCart } from "@/lib/cart-context"
 
-export function CombosSection() {
+export function CombosSection({ onAdd }: { onAdd?: (name: string) => void }) {
   const { addItem } = useCart()
 
   return (
@@ -59,7 +59,7 @@ export function CombosSection() {
                   <div className="mt-4 flex gap-2">
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
                         addItem({
                           id: combo.id,
                           name: combo.name,
@@ -67,7 +67,8 @@ export function CombosSection() {
                           price: combo.comboPrice,
                           type: "combo",
                         })
-                      }
+                        onAdd?.(combo.name)
+                      }}
                       className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                     >
                       <ShoppingCart className="h-4 w-4" />

@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Menu, X, ShoppingCart } from "lucide-react"
+import { Menu, X, ShoppingCart, User, Shield } from "lucide-react"
 import { siteConfig, getWhatsAppLink } from "@/lib/site-config"
 import { useCart } from "@/lib/cart-context"
+import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { label: "PRODUTOS", href: "#produtos" },
@@ -17,6 +18,7 @@ const navLinks = [
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems, setIsOpen: setCartOpen } = useCart()
+  const { user, isAdmin } = useAuth()
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -67,6 +69,27 @@ export function Header() {
               </svg>
             </a>
 
+            {isAdmin && (
+              <a
+                href="/admin"
+                className="flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-80"
+              >
+                <Shield className="h-3.5 w-3.5" />
+                Admin
+              </a>
+            )}
+
+            <a
+              href="/profile"
+              className="relative text-primary-foreground transition-opacity hover:opacity-80"
+              aria-label="Perfil"
+            >
+              <User className="h-5 w-5" />
+              {user && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[hsl(var(--whatsapp))] ring-2 ring-[#6E370D]" />
+              )}
+            </a>
+
             <button
               type="button"
               onClick={() => setCartOpen(true)}
@@ -83,6 +106,25 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4 lg:hidden">
+            {isAdmin && (
+              <a
+                href="/admin"
+                className="flex items-center gap-1 rounded-full bg-primary-foreground/15 px-2.5 py-1 text-[10px] font-bold text-primary-foreground"
+              >
+                <Shield className="h-3 w-3" />
+                Admin
+              </a>
+            )}
+            <a
+              href="/profile"
+              className="relative text-primary-foreground"
+              aria-label="Perfil"
+            >
+              <User className="h-5 w-5" />
+              {user && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[hsl(var(--whatsapp))] ring-2 ring-[#6E370D]" />
+              )}
+            </a>
             <button
               type="button"
               onClick={() => setCartOpen(true)}

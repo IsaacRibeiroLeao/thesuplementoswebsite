@@ -14,6 +14,13 @@ export interface CartItem {
   type: "product" | "combo"
 }
 
+export interface FavoriteOrder {
+  id: string
+  name: string
+  items: CartItem[]
+  created_at: string
+}
+
 interface CartContextType {
   items: CartItem[]
   isOpen: boolean
@@ -28,6 +35,10 @@ interface CartContextType {
   sendOrder: () => Promise<void>
   lastOrder: CartItem[] | null
   loadLastOrder: () => void
+  favorites: FavoriteOrder[]
+  saveFavorite: (name: string) => Promise<{ error: string | null }>
+  loadFavorite: (fav: FavoriteOrder) => void
+  deleteFavorite: (id: string) => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -37,6 +48,7 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
   const [items, setItems] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [lastOrder, setLastOrder] = useState<CartItem[] | null>(null)
+  const [favorites, setFavorites] = useState<FavoriteOrder[]>([])
 
   const addItem = useCallback((newItem: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
@@ -48,7 +60,6 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
       }
       return [...prev, { ...newItem, quantity: 1 }]
     })
-    setIsOpen(true)
   }, [])
 
   const removeItem = useCallback((id: string) => {
@@ -99,15 +110,15 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
     }
     try {
       const { data } = await supabase
-        .from("orders")
+        .from("orders" as any)
         .select("items")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .single()
 
-      if (data?.items && Array.isArray(data.items)) {
-        setLastOrder(data.items as unknown as CartItem[])
+      if ((data as any)?.items && Array.isArray((data as any).items)) {
+        setLastOrder((data as any).items as CartItem[])
       } else {
         setLastOrder(null)
       }
@@ -116,15 +127,69 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
     }
   }, [user])
 
+  const fetchFavorites = useCallback(async () => {
+    if (!user) {
+      setFavorites([])
+      return
+    }
+    const { data } = await supabase
+      .from("favorite_orders" as any)
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+
+    if (data) {
+      setFavorites(data.map((row: Record<string, unknown>) => ({
+        id: row.id as string,
+        name: row.name as string,
+        items: Array.isArray(row.items) ? row.items as CartItem[] : [],
+        created_at: row.created_at as string,
+      })))
+    }
+  }, [user])
+
   useEffect(() => {
     fetchLastOrder()
-  }, [fetchLastOrder])
+    fetchFavorites()
+  }, [fetchLastOrder, fetchFavorites])
 
   const loadLastOrder = useCallback(() => {
     if (!lastOrder || lastOrder.length === 0) return
     setItems(lastOrder.map((item) => ({ ...item })))
     setIsOpen(true)
   }, [lastOrder])
+
+  const saveFavorite = useCallback(async (name: string): Promise<{ error: string | null }> => {
+    if (!user) return { error: "Voce precisa estar logado para salvar favoritos." }
+    if (items.length === 0) return { error: "Carrinho vazio." }
+
+    const { error } = await (supabase.from("favorite_orders" as any) as any).insert({
+      user_id: user.id,
+      name,
+      items: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        brand: item.brand,
+        price: item.price,
+        quantity: item.quantity,
+        type: item.type,
+      })),
+    })
+
+    if (error) return { error: error.message }
+    await fetchFavorites()
+    return { error: null }
+  }, [user, items, fetchFavorites])
+
+  const loadFavorite = useCallback((fav: FavoriteOrder) => {
+    setItems(fav.items.map((item) => ({ ...item })))
+    setIsOpen(true)
+  }, [])
+
+  const deleteFavorite = useCallback(async (id: string) => {
+    await (supabase.from("favorite_orders" as any) as any).delete().eq("id", id)
+    setFavorites((prev) => prev.filter((f) => f.id !== id))
+  }, [])
 
   const sendOrder = useCallback(async () => {
     if (items.length === 0) return
@@ -138,7 +203,7 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
         type: item.type,
       }))
 
-      await supabase.from("orders").insert({
+      await (supabase.from("orders" as any) as any).insert({
         user_id: user?.id ?? null,
         items: orderItems,
         total: totalPrice,
@@ -167,8 +232,12 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
       sendOrder,
       lastOrder,
       loadLastOrder,
+      favorites,
+      saveFavorite,
+      loadFavorite,
+      deleteFavorite,
     }),
-    [items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, getWhatsAppCheckoutLink, sendOrder, lastOrder, loadLastOrder]
+    [items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, getWhatsAppCheckoutLink, sendOrder, lastOrder, loadLastOrder, favorites, saveFavorite, loadFavorite, deleteFavorite]
   )
 
   return (
