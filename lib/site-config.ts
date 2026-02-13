@@ -5,6 +5,66 @@ export const siteConfig = {
   whatsappGreeting: "Ola! Vim pelo site e gostaria de mais informacoes!",
 }
 
+export interface Banner {
+  id: string
+  title: string
+  subtitle: string
+  cta: string
+  ctaLink: string
+  bgColor: string
+  textColor: string
+  highlight?: string
+  tags?: string[]
+  imageUrl?: string
+}
+
+export const banners: Banner[] = [
+  {
+    id: "1",
+    title: "WHEY PROTEIN",
+    subtitle: "Os melhores precos em Whey Concentrado, Isolado e Hidrolisado",
+    cta: "APROVEITE",
+    ctaLink: "#produtos",
+    bgColor: "from-[#8B2500] via-[#A0380A] to-[#6E370D]",
+    textColor: "text-white",
+    highlight: "ATE 30% OFF",
+    tags: ["Pos-treino", "Ganho de massa", "Recuperacao"],
+  },
+  {
+    id: "2",
+    title: "CREATINA PURA",
+    subtitle: "Monohidratada de alta pureza para maximo desempenho",
+    cta: "VER OFERTAS",
+    ctaLink: "#produtos",
+    bgColor: "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
+    textColor: "text-white",
+    highlight: "MAIS VENDIDO",
+    tags: ["Forca", "Performance", "Resistencia"],
+  },
+  {
+    id: "3",
+    title: "COMBOS ESPECIAIS",
+    subtitle: "Monte seu kit com desconto exclusivo e economize",
+    cta: "VER COMBOS",
+    ctaLink: "#combos",
+    bgColor: "from-[#2d1b00] via-[#4a2c00] to-[#6E370D]",
+    textColor: "text-white",
+    highlight: "ECONOMIZE",
+    tags: ["Kits prontos", "Desconto", "Frete gratis"],
+  },
+  {
+    id: "4",
+    title: "PRE-TREINOS",
+    subtitle: "Energia e foco extremo para treinos intensos",
+    cta: "CONFIRA",
+    ctaLink: "#produtos",
+    bgColor: "from-[#1a0a2e] via-[#2d1052] to-[#4a1a7a]",
+    textColor: "text-white",
+    highlight: "NOVIDADE",
+    tags: ["Energia", "Foco", "Pump"],
+  },
+]
+
 export type Category = "massa" | "emagrecer" | "energia" | "saude"
 
 export interface Product {

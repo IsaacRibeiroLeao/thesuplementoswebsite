@@ -168,6 +168,53 @@ export interface Database {
           created_at?: string
         }
       }
+      banners: {
+        Row: {
+          id: string
+          title: string
+          subtitle: string
+          cta: string
+          cta_link: string
+          bg_color: string
+          text_color: string
+          highlight: string | null
+          tags: string[]
+          sort_order: number
+          active: boolean
+          image_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          subtitle: string
+          cta?: string
+          cta_link?: string
+          bg_color?: string
+          text_color?: string
+          highlight?: string | null
+          tags?: string[]
+          sort_order?: number
+          active?: boolean
+          image_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          subtitle?: string
+          cta?: string
+          cta_link?: string
+          bg_color?: string
+          text_color?: string
+          highlight?: string | null
+          tags?: string[]
+          sort_order?: number
+          active?: boolean
+          image_url?: string | null
+          created_at?: string
+        }
+      }
       testimonials: {
         Row: {
           id: string

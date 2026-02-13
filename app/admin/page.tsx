@@ -10,6 +10,7 @@ import {
   LogOut,
   Package,
   BarChart3,
+  Image as ImageIcon,
 } from "lucide-react"
 import {
   BarChart,
@@ -162,11 +163,18 @@ export default function AdminDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <a
+              href="/admin/banners"
+              className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Banners
+            </a>
+            <a
               href="/admin/orders"
               className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
             >
               <Package className="h-4 w-4" />
-              Gerenciar Pedidos
+              Pedidos
             </a>
             <button
               type="button"
