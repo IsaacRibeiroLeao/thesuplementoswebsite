@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Clock,
   CheckCircle,
+  Wrench,
+  Car,
   Truck,
   XCircle,
   Trash2,
@@ -46,6 +48,8 @@ interface Order {
 const COLUMNS = [
   { key: "pending", label: "Pendente", color: "text-yellow-500", border: "border-yellow-500", bg: "bg-yellow-500", headerBg: "bg-yellow-500/10", icon: Clock },
   { key: "confirmed", label: "Confirmado", color: "text-blue-500", border: "border-blue-500", bg: "bg-blue-500", headerBg: "bg-blue-500/10", icon: CheckCircle },
+  { key: "preparing", label: "Preparando", color: "text-blue-400", border: "border-blue-400", bg: "bg-blue-400", headerBg: "bg-blue-400/10", icon: Wrench },
+  { key: "shipped", label: "Enviado", color: "text-violet-500", border: "border-violet-500", bg: "bg-violet-500", headerBg: "bg-violet-500/10", icon: Car },
   { key: "delivered", label: "Entregue", color: "text-green-500", border: "border-green-500", bg: "bg-green-500", headerBg: "bg-green-500/10", icon: Truck },
   { key: "cancelled", label: "Cancelado", color: "text-red-500", border: "border-red-500", bg: "bg-red-500", headerBg: "bg-red-500/10", icon: XCircle },
 ]
@@ -62,9 +66,10 @@ function timeAgo(dateStr: string) {
 }
 
 function nextStatus(current: string): string | null {
-  const idx = COLUMNS.findIndex((c) => c.key === current)
-  if (idx < 0 || idx >= 2) return null
-  return COLUMNS[idx + 1].key
+  const flow = COLUMNS.filter((c) => c.key !== "cancelled")
+  const idx = flow.findIndex((c) => c.key === current)
+  if (idx < 0 || idx >= flow.length - 1) return null
+  return flow[idx + 1].key
 }
 
 export default function AdminOrdersPage() {

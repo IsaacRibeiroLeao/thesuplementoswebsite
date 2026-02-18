@@ -1,11 +1,50 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Package, ShoppingCart } from "lucide-react"
-import { combos, getWhatsAppLink, getComboWhatsAppMessage, formatPrice } from "@/lib/site-config"
+import { combos as staticCombos, getWhatsAppLink, getComboWhatsAppMessage, formatPrice, type Combo } from "@/lib/site-config"
 import { useCart } from "@/lib/cart-context"
+import { supabase } from "@/lib/supabase"
 
-export function CombosSection({ onAdd }: { onAdd?: (name: string) => void }) {
+interface DBCombo {
+  id: string
+  name: string
+  products: string[]
+  original_price: number
+  combo_price: number
+  badge: string | null
+  image_url: string | null
+  sort_order: number
+}
+
+function dbToCombo(row: DBCombo): Combo {
+  return {
+    id: row.id,
+    name: row.name,
+    products: row.products ?? [],
+    originalPrice: row.original_price,
+    comboPrice: row.combo_price,
+    badge: row.badge ?? "",
+  }
+}
+
+export function CombosSection({ onAdd }: Readonly<{ onAdd?: (name: string) => void }>) {
   const { addItem } = useCart()
+  const [combos, setCombos] = useState<Combo[]>(staticCombos)
+
+  useEffect(() => {
+    async function fetchCombos() {
+      const { data } = await (supabase.from("combos" as any) as any)
+        .select("*")
+        .eq("active", true)
+        .order("sort_order", { ascending: true })
+
+      if (data && data.length > 0) {
+        setCombos((data as DBCombo[]).map(dbToCombo))
+      }
+    }
+    fetchCombos()
+  }, [])
 
   return (
     <section id="combos" className="py-20">

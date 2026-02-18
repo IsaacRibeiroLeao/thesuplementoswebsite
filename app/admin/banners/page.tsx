@@ -414,33 +414,47 @@ export default function AdminBannersPage() {
               <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Preview
               </label>
-              <div className={`relative overflow-hidden rounded-lg bg-gradient-to-r ${editing.bg_color} p-6`}>
-                {imagePreview && (
-                  <div className="pointer-events-none absolute inset-0">
-                    <img src={imagePreview} alt="" className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40" />
+              {(() => {
+                const previewHasText = !!(editing.title?.trim() || editing.subtitle?.trim())
+                const previewImageOnly = !!imagePreview && !previewHasText
+                return (
+                  <div className={`relative min-h-[120px] overflow-hidden rounded-lg ${previewImageOnly ? "bg-black" : `bg-gradient-to-r ${editing.bg_color}`} p-6`}>
+                    {imagePreview && (
+                      <div className="pointer-events-none absolute inset-0">
+                        <img src={imagePreview} alt="" className="h-full w-full object-cover" />
+                        {previewHasText && <div className="absolute inset-0 bg-black/40" />}
+                      </div>
+                    )}
+                    {previewHasText && (
+                      <div className="relative">
+                        {editing.highlight?.trim() && (
+                          <span className="mb-2 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold tracking-wider text-white">
+                            {editing.highlight}
+                          </span>
+                        )}
+                        {editing.title?.trim() && (
+                          <h3 className="text-2xl font-black text-white">{editing.title}</h3>
+                        )}
+                        {editing.subtitle?.trim() && (
+                          <p className="mt-1 text-sm text-white/80">{editing.subtitle}</p>
+                        )}
+                        {tagsInput && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {tagsInput.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
+                              <span key={tag} className="text-xs text-white/60">✓ {tag}</span>
+                            ))}
+                          </div>
+                        )}
+                        {editing.cta?.trim() && (
+                          <span className="mt-3 inline-block rounded-lg bg-[hsl(var(--whatsapp))] px-5 py-2 text-xs font-black tracking-widest text-[#0a0a0a]">
+                            {editing.cta}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="relative">
-                  {editing.highlight && (
-                    <span className="mb-2 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold tracking-wider text-white">
-                      {editing.highlight}
-                    </span>
-                  )}
-                  <h3 className="text-2xl font-black text-white">{editing.title || "Titulo"}</h3>
-                  <p className="mt-1 text-sm text-white/80">{editing.subtitle || "Subtitulo"}</p>
-                  {tagsInput && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {tagsInput.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
-                        <span key={tag} className="text-xs text-white/60">✓ {tag}</span>
-                      ))}
-                    </div>
-                  )}
-                  <span className="mt-3 inline-block rounded-lg bg-[hsl(var(--whatsapp))] px-5 py-2 text-xs font-black tracking-widest text-[#0a0a0a]">
-                    {editing.cta || "BOTAO"}
-                  </span>
-                </div>
-              </div>
+                )
+              })()}
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
@@ -454,7 +468,7 @@ export default function AdminBannersPage() {
               <button
                 type="button"
                 onClick={saveBanner}
-                disabled={saving || !editing.title || !editing.subtitle}
+                disabled={saving || !editing.image_url}
                 className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 <Save className="h-3.5 w-3.5" />

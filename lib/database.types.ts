@@ -53,34 +53,46 @@ export interface Database {
         Row: {
           id: string
           name: string
+          brand: string
           description: string
           price: number
+          original_price: number | null
           category: string
-          image_url: string
+          badge: string | null
+          image_url: string | null
           in_stock: boolean
           active: boolean
+          sort_order: number
           created_at: string
         }
         Insert: {
           id?: string
           name: string
+          brand: string
           description: string
           price: number
+          original_price?: number | null
           category: string
-          image_url: string
+          badge?: string | null
+          image_url?: string | null
           in_stock?: boolean
           active?: boolean
+          sort_order?: number
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
+          brand?: string
           description?: string
           price?: number
+          original_price?: number | null
           category?: string
-          image_url?: string
+          badge?: string | null
+          image_url?: string | null
           in_stock?: boolean
           active?: boolean
+          sort_order?: number
           created_at?: string
         }
       }
@@ -91,7 +103,10 @@ export interface Database {
           products: string[]
           original_price: number
           combo_price: number
+          badge: string | null
+          image_url: string | null
           active: boolean
+          sort_order: number
           created_at: string
         }
         Insert: {
@@ -100,7 +115,10 @@ export interface Database {
           products: string[]
           original_price: number
           combo_price: number
+          badge?: string | null
+          image_url?: string | null
           active?: boolean
+          sort_order?: number
           created_at?: string
         }
         Update: {
@@ -109,7 +127,10 @@ export interface Database {
           products?: string[]
           original_price?: number
           combo_price?: number
+          badge?: string | null
+          image_url?: string | null
           active?: boolean
+          sort_order?: number
           created_at?: string
         }
       }
@@ -219,22 +240,27 @@ export interface Database {
         Row: {
           id: string
           name: string
+          city: string
           text: string
           rating: number
           approved: boolean
+          user_id: string | null
           created_at: string
         }
         Insert: {
           id?: string
           name: string
+          city?: string
           text: string
           rating: number
           approved?: boolean
+          user_id?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           name?: string
+          city?: string
           text?: string
           rating?: number
           approved?: boolean

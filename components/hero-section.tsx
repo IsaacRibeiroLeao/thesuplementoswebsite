@@ -89,76 +89,88 @@ export function HeroSection() {
   }, [isAutoPlaying, next])
 
   const banner = banners[current] ?? banners[0]
+  const hasText = !!(banner.title?.trim() || banner.subtitle?.trim())
+  const imageOnly = !!banner.imageUrl && !hasText
 
   return (
     <section id="inicio" className="pt-[104px] lg:pt-[108px]">
       {/* Banner Carousel */}
       <div className="relative overflow-hidden">
-        <div
-          className={`relative flex min-h-[340px] items-center bg-gradient-to-r ${banner.bgColor} transition-all duration-700 sm:min-h-[400px] lg:min-h-[480px]`}
+        <a
+          href={banner.ctaLink || "#"}
+          className={`relative flex min-h-[340px] cursor-pointer items-center transition-all duration-700 sm:min-h-[400px] lg:min-h-[480px] ${imageOnly ? "bg-black" : `bg-gradient-to-r ${banner.bgColor}`}`}
         >
           {/* Background image */}
           {banner.imageUrl && (
             <div className="pointer-events-none absolute inset-0">
               <img
                 src={banner.imageUrl}
-                alt=""
+                alt={banner.title?.trim() || "Banner"}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/40" />
+              {hasText && (
+                <div className="absolute inset-0 bg-black/40" />
+              )}
             </div>
           )}
 
-          {/* Decorative elements */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -top-20 -right-20 h-[300px] w-[300px] rounded-full bg-white/5 blur-[80px]" />
-            <div className="absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full bg-white/5 blur-[60px]" />
-          </div>
-
-          {/* Content */}
-          <div className="relative mx-auto w-full max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
-            <div className="max-w-xl animate-fade-in-up">
-              {banner.highlight && (
-                <span className="mb-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold tracking-wider text-white backdrop-blur-sm">
-                  {banner.highlight}
-                </span>
-              )}
-
-              <h2 className={`text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl ${banner.textColor}`}>
-                {banner.title}
-              </h2>
-
-              <p className="mt-3 text-base text-white/80 sm:text-lg lg:text-xl">
-                {banner.subtitle}
-              </p>
-
-              {banner.tags && banner.tags.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {banner.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="flex items-center gap-1.5 text-sm font-medium text-white/70"
-                    >
-                      <svg className="h-3.5 w-3.5 text-[hsl(var(--whatsapp))]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <a
-                href={banner.ctaLink}
-                className="mt-8 inline-flex items-center justify-center rounded-lg bg-[hsl(var(--whatsapp))] px-8 py-3.5 text-sm font-black tracking-[0.2em] text-[#0a0a0a] transition-all hover:scale-105 hover:shadow-lg hover:shadow-[hsl(var(--whatsapp))]/30"
-              >
-                {banner.cta}
-              </a>
+          {/* Decorative elements — hide on image-only banners */}
+          {!imageOnly && (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute -top-20 -right-20 h-[300px] w-[300px] rounded-full bg-white/5 blur-[80px]" />
+              <div className="absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full bg-white/5 blur-[60px]" />
             </div>
-          </div>
+          )}
+
+          {/* Content — only show if there's actual text */}
+          {hasText && (
+            <div className="relative mx-auto w-full max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
+              <div className="max-w-xl animate-fade-in-up">
+                {banner.highlight?.trim() && (
+                  <span className="mb-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold tracking-wider text-white backdrop-blur-sm">
+                    {banner.highlight}
+                  </span>
+                )}
+
+                {banner.title?.trim() && (
+                  <h2 className={`text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl ${banner.textColor}`}>
+                    {banner.title}
+                  </h2>
+                )}
+
+                {banner.subtitle?.trim() && (
+                  <p className="mt-3 text-base text-white/80 sm:text-lg lg:text-xl">
+                    {banner.subtitle}
+                  </p>
+                )}
+
+                {banner.tags && banner.tags.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {banner.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="flex items-center gap-1.5 text-sm font-medium text-white/70"
+                      >
+                        <svg className="h-3.5 w-3.5 text-[hsl(var(--whatsapp))]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {banner.cta?.trim() && (
+                  <span className="mt-8 inline-flex items-center justify-center rounded-lg bg-[hsl(var(--whatsapp))] px-8 py-3.5 text-sm font-black tracking-[0.2em] text-[#0a0a0a] transition-all hover:scale-105 hover:shadow-lg hover:shadow-[hsl(var(--whatsapp))]/30">
+                    {banner.cta}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Navigation arrows */}
           <button
             type="button"
-            onClick={prev}
+            onClick={(e) => { e.preventDefault(); prev() }}
             className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition-all hover:bg-black/50 lg:left-4 lg:h-12 lg:w-12"
             aria-label="Banner anterior"
           >
@@ -166,7 +178,7 @@ export function HeroSection() {
           </button>
           <button
             type="button"
-            onClick={() => { goTo((current + 1) % banners.length) }}
+            onClick={(e) => { e.preventDefault(); goTo((current + 1) % banners.length) }}
             className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition-all hover:bg-black/50 lg:right-4 lg:h-12 lg:w-12"
             aria-label="Proximo banner"
           >
@@ -179,7 +191,7 @@ export function HeroSection() {
               <button
                 key={b.id}
                 type="button"
-                onClick={() => goTo(i)}
+                onClick={(e) => { e.preventDefault(); goTo(i) }}
                 className={`h-2.5 rounded-full transition-all ${
                   i === current ? "w-8 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
                 }`}
@@ -187,7 +199,7 @@ export function HeroSection() {
               />
             ))}
           </div>
-        </div>
+        </a>
       </div>
 
       {/* Info bar */}

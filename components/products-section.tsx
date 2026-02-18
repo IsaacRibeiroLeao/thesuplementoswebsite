@@ -1,9 +1,40 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import { ShoppingCart } from "lucide-react"
-import { products, getWhatsAppLink, getProductWhatsAppMessage, formatPrice } from "@/lib/site-config"
-import type { Category } from "@/lib/site-config"
+import { products as staticProducts, getWhatsAppLink, getProductWhatsAppMessage, formatPrice } from "@/lib/site-config"
+import type { Category, Product } from "@/lib/site-config"
 import { useCart } from "@/lib/cart-context"
+import { supabase } from "@/lib/supabase"
+
+interface DBProduct {
+  id: string
+  name: string
+  brand: string
+  description: string
+  price: number
+  original_price: number | null
+  category: string
+  badge: string | null
+  image_url: string | null
+  in_stock: boolean
+  sort_order: number
+}
+
+function dbToProduct(row: DBProduct): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    brand: row.brand,
+    description: row.description,
+    price: row.price,
+    originalPrice: row.original_price ?? undefined,
+    category: row.category as Category,
+    badge: row.badge ?? undefined,
+    image: row.image_url ?? undefined,
+  }
+}
 
 const filters: { id: Category | "todos"; label: string }[] = [
   { id: "todos", label: "Todos" },
@@ -19,8 +50,25 @@ interface ProductsSectionProps {
   onAdd?: (name: string) => void
 }
 
-export function ProductsSection({ activeFilter, onFilterChange, onAdd }: ProductsSectionProps) {
+export function ProductsSection({ activeFilter, onFilterChange, onAdd }: Readonly<ProductsSectionProps>) {
   const { addItem } = useCart()
+  const [products, setProducts] = useState<Product[]>(staticProducts)
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const { data } = await (supabase.from("products" as any) as any)
+        .select("*")
+        .eq("active", true)
+        .eq("in_stock", true)
+        .order("sort_order", { ascending: true })
+
+      if (data && data.length > 0) {
+        setProducts((data as DBProduct[]).map(dbToProduct))
+      }
+    }
+    fetchProducts()
+  }, [])
+
   const filteredProducts =
     activeFilter === "todos" ? products : products.filter((p) => p.category === activeFilter)
 
@@ -63,17 +111,23 @@ export function ProductsSection({ activeFilter, onFilterChange, onAdd }: Product
                 </span>
               )}
 
-              <div className="flex h-48 items-center justify-center bg-secondary/50">
-                <span className="text-5xl font-extrabold text-primary/20">
-                  {product.name.charAt(0)}
-                </span>
-              </div>
+              <Link href={`/produto/${product.id}`} className="flex h-48 items-center justify-center bg-secondary/50">
+                {product.image ? (
+                  <img src={product.image} alt={product.name} className="h-full w-full object-contain p-4" />
+                ) : (
+                  <span className="text-5xl font-extrabold text-primary/20">
+                    {product.name.charAt(0)}
+                  </span>
+                )}
+              </Link>
 
               <div className="flex flex-1 flex-col p-4">
                 <span className="text-xs font-bold uppercase tracking-wider text-primary">
                   {product.brand}
                 </span>
-                <h3 className="mt-1 font-semibold text-foreground leading-snug">{product.name}</h3>
+                <Link href={`/produto/${product.id}`} className="mt-1 font-semibold text-foreground leading-snug hover:text-primary transition-colors">
+                  {product.name}
+                </Link>
                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
 
                 <div className="mt-auto pt-4">

@@ -13,6 +13,8 @@ import {
   LogOut,
   Clock,
   CheckCircle,
+  Wrench,
+  Car,
   Truck,
   XCircle,
   Package,
@@ -24,6 +26,9 @@ import {
   Eye,
   EyeOff,
   Shield,
+  Star,
+  Send,
+  MessageSquare,
 } from "lucide-react"
 
 interface OrderItem {
@@ -45,6 +50,8 @@ interface Order {
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
   pending: { label: "Pendente", color: "text-yellow-500", bg: "bg-yellow-500", icon: Clock },
   confirmed: { label: "Confirmado", color: "text-blue-500", bg: "bg-blue-500", icon: CheckCircle },
+  preparing: { label: "Preparando", color: "text-blue-400", bg: "bg-blue-400", icon: Wrench },
+  shipped: { label: "Enviado", color: "text-violet-500", bg: "bg-violet-500", icon: Car },
   delivered: { label: "Entregue", color: "text-green-500", bg: "bg-green-500", icon: Truck },
   cancelled: { label: "Cancelado", color: "text-red-500", bg: "bg-red-500", icon: XCircle },
 }
@@ -58,6 +65,15 @@ function ProfileContent() {
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"orders" | "favorites">("orders")
+
+  // Review state
+  const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState("")
+  const [reviewName, setReviewName] = useState("")
+  const [reviewCity, setReviewCity] = useState("")
+  const [reviewSending, setReviewSending] = useState(false)
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<Set<string>>(new Set())
 
   // Auth form
   const [authMode, setAuthMode] = useState<"login" | "signup">("login")
@@ -91,9 +107,48 @@ function ProfileContent() {
     setLoadingOrders(false)
   }, [user])
 
+  const fetchReviewedOrders = useCallback(async () => {
+    if (!user) return
+    const { data } = await (supabase.from("testimonials" as any) as any)
+      .select("id, name")
+      .eq("user_id", user.id)
+
+    if (data) {
+      // We store order references; for now we track by user_id existence
+      setReviewedOrderIds(new Set((data as any[]).map((r: any) => r.id)))
+    }
+  }, [user])
+
   useEffect(() => {
-    if (user) fetchOrders()
-  }, [user, fetchOrders])
+    if (user) {
+      fetchOrders()
+      fetchReviewedOrders()
+    }
+  }, [user, fetchOrders, fetchReviewedOrders])
+
+  async function handleSendReview(orderId: string) {
+    if (!reviewText.trim() || !reviewName.trim()) return
+    setReviewSending(true)
+    try {
+      await (supabase.from("testimonials" as any) as any).insert({
+        name: reviewName.trim(),
+        city: reviewCity.trim(),
+        text: reviewText.trim(),
+        rating: reviewRating,
+        approved: false,
+        user_id: user?.id ?? null,
+      })
+      setReviewedOrderIds((prev) => new Set([...prev, orderId]))
+      setReviewingOrderId(null)
+      setReviewText("")
+      setReviewRating(5)
+      setReviewName("")
+      setReviewCity("")
+    } catch {
+      alert("Erro ao enviar avaliacao. Tente novamente.")
+    }
+    setReviewSending(false)
+  }
 
   async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -423,6 +478,97 @@ function ProfileContent() {
                               <span className="text-sm font-bold text-primary">R$ {formatPrice(order.total)}</span>
                             </div>
                           </div>
+
+                          {/* Review section for delivered orders */}
+                          {order.status === "delivered" && (
+                            <div className="mt-3">
+                              {reviewedOrderIds.has(order.id) ? (
+                                <div className="flex items-center gap-2 rounded-lg bg-[hsl(var(--whatsapp))]/10 px-4 py-3">
+                                  <CheckCircle className="h-4 w-4 text-[hsl(var(--whatsapp))]" />
+                                  <span className="text-sm font-medium text-[hsl(var(--whatsapp))]">Avaliacao enviada! Obrigado.</span>
+                                </div>
+                              ) : reviewingOrderId === order.id ? (
+                                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                                  <p className="mb-3 text-sm font-bold text-foreground">Deixe sua avaliacao</p>
+
+                                  {/* Stars */}
+                                  <div className="mb-3 flex gap-1">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                      <button
+                                        key={s}
+                                        type="button"
+                                        onClick={() => setReviewRating(s)}
+                                        className="transition-transform hover:scale-110"
+                                      >
+                                        <Star className={`h-6 w-6 ${s <= reviewRating ? "fill-primary text-primary" : "text-border"}`} />
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  {/* Name + City */}
+                                  <div className="mb-2 grid grid-cols-2 gap-2">
+                                    <input
+                                      type="text"
+                                      value={reviewName}
+                                      onChange={(e) => setReviewName(e.target.value)}
+                                      placeholder="Seu nome"
+                                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={reviewCity}
+                                      onChange={(e) => setReviewCity(e.target.value)}
+                                      placeholder="Sua cidade (ex: Teresina, PI)"
+                                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                                    />
+                                  </div>
+
+                                  {/* Text */}
+                                  <textarea
+                                    value={reviewText}
+                                    onChange={(e) => setReviewText(e.target.value)}
+                                    rows={3}
+                                    placeholder="Conte como foi sua experiencia..."
+                                    className="mb-3 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                                  />
+
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setReviewingOrderId(null)}
+                                      className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSendReview(order.id)}
+                                      disabled={reviewSending || !reviewText.trim() || !reviewName.trim()}
+                                      className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                                    >
+                                      <Send className="h-3.5 w-3.5" />
+                                      {reviewSending ? "Enviando..." : "Enviar avaliacao"}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReviewingOrderId(order.id)
+                                    setReviewRating(5)
+                                    setReviewText("")
+                                    setReviewName(user?.email?.split("@")[0] || "")
+                                    setReviewCity("")
+                                  }}
+                                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                  Avaliar este pedido
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

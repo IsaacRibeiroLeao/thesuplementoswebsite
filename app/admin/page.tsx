@@ -11,6 +11,8 @@ import {
   Package,
   BarChart3,
   Image as ImageIcon,
+  Home,
+  MessageSquare,
 } from "lucide-react"
 import {
   BarChart,
@@ -154,37 +156,61 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
+        {/* Top bar */}
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-3">
-            <BarChart3 className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">
-              THE&apos;s Suplementos — Dashboard
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h1 className="text-base font-bold text-foreground">
+              THE&apos;s Suplementos
             </h1>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Admin</span>
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="/admin/banners"
-              className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+              href="/"
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <ImageIcon className="h-4 w-4" />
-              Banners
-            </a>
-            <a
-              href="/admin/orders"
-              className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
-            >
-              <Package className="h-4 w-4" />
-              Pedidos
+              <Home className="h-3.5 w-3.5" />
+              Voltar ao site
             </a>
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
               Sair
             </button>
           </div>
+        </div>
+        {/* Navigation */}
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
+          <nav className="flex gap-1 overflow-x-auto pb-2">
+            <a href="/admin" className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Dashboard
+            </a>
+            <a href="/admin/products" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Produtos
+            </a>
+            <a href="/admin/combos" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <Package className="h-3.5 w-3.5" />
+              Combos
+            </a>
+            <a href="/admin/banners" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Banners
+            </a>
+            <a href="/admin/testimonials" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <MessageSquare className="h-3.5 w-3.5" />
+              Depoimentos
+            </a>
+            <a href="/admin/orders" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <Package className="h-3.5 w-3.5" />
+              Pedidos
+            </a>
+          </nav>
         </div>
       </header>
 
@@ -426,13 +452,19 @@ function ChartCard({
 function StatusBadge({ status }: Readonly<{ status: string }>) {
   const styles: Record<string, string> = {
     pending: "bg-yellow-500/10 text-yellow-500",
-    confirmed: "bg-green-500/10 text-green-500",
+    confirmed: "bg-blue-500/10 text-blue-500",
+    preparing: "bg-blue-400/10 text-blue-400",
+    shipped: "bg-violet-500/10 text-violet-500",
+    delivered: "bg-green-500/10 text-green-500",
     cancelled: "bg-red-500/10 text-red-500",
   }
 
   const labels: Record<string, string> = {
     pending: "Pendente",
     confirmed: "Confirmado",
+    preparing: "Preparando",
+    shipped: "Enviado",
+    delivered: "Entregue",
     cancelled: "Cancelado",
   }
 

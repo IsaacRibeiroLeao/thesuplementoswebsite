@@ -1,7 +1,45 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Star } from "lucide-react"
-import { testimonials } from "@/lib/site-config"
+import { testimonials as staticTestimonials, type Testimonial } from "@/lib/site-config"
+import { supabase } from "@/lib/supabase"
+
+interface DBTestimonial {
+  id: string
+  name: string
+  city: string
+  text: string
+  rating: number
+}
+
+function dbToTestimonial(row: DBTestimonial): Testimonial {
+  return {
+    name: row.name,
+    city: row.city || "",
+    rating: row.rating,
+    quote: row.text,
+  }
+}
 
 export function TestimonialsSection() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(staticTestimonials)
+
+  useEffect(() => {
+    async function fetchTestimonials() {
+      const { data } = await (supabase.from("testimonials" as any) as any)
+        .select("id, name, city, text, rating")
+        .eq("approved", true)
+        .order("created_at", { ascending: false })
+        .limit(8)
+
+      if (data && data.length > 0) {
+        setTestimonials((data as DBTestimonial[]).map(dbToTestimonial))
+      }
+    }
+    fetchTestimonials()
+  }, [])
+
   return (
     <section id="depoimentos" className="bg-secondary/30 py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
