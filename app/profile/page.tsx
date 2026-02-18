@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Wrench,
   Car,
+  Bike,
   Truck,
   XCircle,
   Package,
@@ -52,6 +53,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
   confirmed: { label: "Confirmado", color: "text-blue-500", bg: "bg-blue-500", icon: CheckCircle },
   preparing: { label: "Preparando", color: "text-blue-400", bg: "bg-blue-400", icon: Wrench },
   shipped: { label: "Enviado", color: "text-violet-500", bg: "bg-violet-500", icon: Car },
+  out_for_delivery: { label: "Saiu p/ entrega", color: "text-orange-500", bg: "bg-orange-500", icon: Bike },
   delivered: { label: "Entregue", color: "text-green-500", bg: "bg-green-500", icon: Truck },
   cancelled: { label: "Cancelado", color: "text-red-500", bg: "bg-red-500", icon: XCircle },
 }

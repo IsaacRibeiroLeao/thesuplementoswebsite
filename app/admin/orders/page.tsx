@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Wrench,
   Car,
+  Bike,
   Truck,
   XCircle,
   Trash2,
@@ -50,6 +51,7 @@ const COLUMNS = [
   { key: "confirmed", label: "Confirmado", color: "text-blue-500", border: "border-blue-500", bg: "bg-blue-500", headerBg: "bg-blue-500/10", icon: CheckCircle },
   { key: "preparing", label: "Preparando", color: "text-blue-400", border: "border-blue-400", bg: "bg-blue-400", headerBg: "bg-blue-400/10", icon: Wrench },
   { key: "shipped", label: "Enviado", color: "text-violet-500", border: "border-violet-500", bg: "bg-violet-500", headerBg: "bg-violet-500/10", icon: Car },
+  { key: "out_for_delivery", label: "Saiu p/ entrega", color: "text-orange-500", border: "border-orange-500", bg: "bg-orange-500", headerBg: "bg-orange-500/10", icon: Bike },
   { key: "delivered", label: "Entregue", color: "text-green-500", border: "border-green-500", bg: "bg-green-500", headerBg: "bg-green-500/10", icon: Truck },
   { key: "cancelled", label: "Cancelado", color: "text-red-500", border: "border-red-500", bg: "bg-red-500", headerBg: "bg-red-500/10", icon: XCircle },
 ]

@@ -455,6 +455,7 @@ function StatusBadge({ status }: Readonly<{ status: string }>) {
     confirmed: "bg-blue-500/10 text-blue-500",
     preparing: "bg-blue-400/10 text-blue-400",
     shipped: "bg-violet-500/10 text-violet-500",
+    out_for_delivery: "bg-orange-500/10 text-orange-500",
     delivered: "bg-green-500/10 text-green-500",
     cancelled: "bg-red-500/10 text-red-500",
   }
@@ -464,6 +465,7 @@ function StatusBadge({ status }: Readonly<{ status: string }>) {
     confirmed: "Confirmado",
     preparing: "Preparando",
     shipped: "Enviado",
+    out_for_delivery: "Saiu p/ entrega",
     delivered: "Entregue",
     cancelled: "Cancelado",
   }
