@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { X, Plus, Minus, Trash2, ShoppingCart, Heart, RotateCcw, Check, ArrowRight } from "lucide-react"
 import { useCart, type FavoriteOrder } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
@@ -53,18 +53,37 @@ export function CartDrawer() {
     deleteFavorite(fav.id)
   }
 
-  if (!isOpen) return null
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const openTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true)
+      openTimeout.current = setTimeout(() => setVisible(true), 10)
+    } else {
+      setVisible(false)
+      openTimeout.current = setTimeout(() => setMounted(false), 300)
+    }
+    return () => { if (openTimeout.current) clearTimeout(openTimeout.current) }
+  }, [isOpen])
+
+  if (!mounted) return null
 
   return (
     <>
       <button
         type="button"
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
         onClick={() => setIsOpen(false)}
         aria-label="Fechar carrinho"
       />
 
-      <div className="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-background border-l border-border shadow-2xl">
+      <div className={`fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-background border-l border-border shadow-2xl transition-transform duration-300 ease-out ${
+        visible ? "translate-x-0" : "translate-x-full"
+      }`}>
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-primary" />

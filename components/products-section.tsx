@@ -14,10 +14,13 @@ interface DBProduct {
   brand: string
   description: string
   price: number
+  card_price: number | null
   original_price: number | null
   category: string
   badge: string | null
   image_url: string | null
+  nutritional_images: string[] | null
+  video_url: string | null
   in_stock: boolean
   sort_order: number
 }
@@ -29,10 +32,13 @@ function dbToProduct(row: DBProduct): Product {
     brand: row.brand,
     description: row.description,
     price: row.price,
+    cardPrice: row.card_price ?? undefined,
     originalPrice: row.original_price ?? undefined,
     category: row.category as Category,
     badge: row.badge ?? undefined,
     image: row.image_url ?? undefined,
+    nutritionalImages: row.nutritional_images?.length ? row.nutritional_images : undefined,
+    videoUrl: row.video_url ?? undefined,
   }
 }
 
@@ -128,8 +134,6 @@ export function ProductsSection({ activeFilter, onFilterChange, onAdd }: Readonl
                 <Link href={`/produto/${product.id}`} className="mt-1 font-semibold text-foreground leading-snug hover:text-primary transition-colors">
                   {product.name}
                 </Link>
-                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
-
                 <div className="mt-auto pt-4">
                   <div className="flex items-baseline gap-2">
                     {product.originalPrice && (

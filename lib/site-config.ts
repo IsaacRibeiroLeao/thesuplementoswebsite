@@ -73,10 +73,13 @@ export interface Product {
   brand: string
   description: string
   price: number
+  cardPrice?: number
   originalPrice?: number
   category: Category
   badge?: string
   image?: string
+  nutritionalImages?: string[]
+  videoUrl?: string
 }
 
 export interface Combo {
@@ -109,6 +112,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Proteina de alta qualidade para ganho de massa muscular",
     price: 119.9,
+    cardPrice: 134.9,
     originalPrice: 149.9,
     category: "massa",
     badge: "Mais Vendido",
@@ -119,6 +123,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Aumento de forca e performance nos treinos",
     price: 89.9,
+    cardPrice: 99.9,
     originalPrice: 109.9,
     category: "massa",
     badge: "-18%",
@@ -129,6 +134,7 @@ export const products: Product[] = [
     brand: "Max Titanium",
     description: "Ganho de peso com carboidratos e proteinas",
     price: 99.9,
+    cardPrice: 112.9,
     originalPrice: 129.9,
     category: "massa",
   },
@@ -138,6 +144,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Proteina isolada com baixo teor de gordura",
     price: 179.9,
+    cardPrice: 199.9,
     originalPrice: 219.9,
     category: "emagrecer",
     badge: "-22%",
@@ -148,6 +155,7 @@ export const products: Product[] = [
     brand: "Black Skull",
     description: "Acelerador metabolico para queima de gordura",
     price: 69.9,
+    cardPrice: 79.9,
     originalPrice: 89.9,
     category: "emagrecer",
   },
@@ -157,6 +165,7 @@ export const products: Product[] = [
     brand: "Atlhetica",
     description: "Auxilia na queima de gordura durante o exercicio",
     price: 49.9,
+    cardPrice: 56.9,
     originalPrice: 64.9,
     category: "emagrecer",
     badge: "Oferta",
@@ -167,6 +176,7 @@ export const products: Product[] = [
     brand: "Darkness",
     description: "Energia e foco extremo para seus treinos",
     price: 129.9,
+    cardPrice: 146.9,
     originalPrice: 159.9,
     category: "energia",
     badge: "Mais Vendido",
@@ -177,6 +187,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Energia e disposicao para o dia a dia",
     price: 29.9,
+    cardPrice: 33.9,
     originalPrice: 39.9,
     category: "energia",
   },
@@ -186,6 +197,7 @@ export const products: Product[] = [
     brand: "Max Titanium",
     description: "Recuperacao muscular pos-treino",
     price: 49.9,
+    cardPrice: 56.9,
     originalPrice: 59.9,
     category: "energia",
   },
@@ -195,6 +207,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Vitaminas e minerais essenciais para o corpo",
     price: 39.9,
+    cardPrice: 44.9,
     originalPrice: 49.9,
     category: "saude",
   },
@@ -204,6 +217,7 @@ export const products: Product[] = [
     brand: "Growth",
     description: "Acidos graxos para saude cardiovascular",
     price: 44.9,
+    cardPrice: 50.9,
     originalPrice: 54.9,
     category: "saude",
     badge: "Oferta",
@@ -214,6 +228,7 @@ export const products: Product[] = [
     brand: "Atlhetica",
     description: "Saude da pele, cabelos, unhas e articulacoes",
     price: 59.9,
+    cardPrice: 67.9,
     originalPrice: 74.9,
     category: "saude",
   },

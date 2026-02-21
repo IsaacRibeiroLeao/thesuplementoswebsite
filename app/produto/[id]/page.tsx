@@ -36,10 +36,13 @@ interface DBProduct {
   brand: string
   description: string
   price: number
+  card_price: number | null
   original_price: number | null
   category: string
   badge: string | null
   image_url: string | null
+  nutritional_images: string[] | null
+  video_url: string | null
   in_stock: boolean
   sort_order: number
 }
@@ -51,10 +54,13 @@ function dbToProduct(row: DBProduct): Product {
     brand: row.brand,
     description: row.description,
     price: row.price,
+    cardPrice: row.card_price ?? undefined,
     originalPrice: row.original_price ?? undefined,
     category: row.category as Category,
     badge: row.badge ?? undefined,
     image: row.image_url ?? undefined,
+    nutritionalImages: row.nutritional_images?.length ? row.nutritional_images : undefined,
+    videoUrl: row.video_url ?? undefined,
   }
 }
 
@@ -235,36 +241,36 @@ function ProductDetailContent() {
               {/* Divider */}
               <div className="my-5 border-t border-border" />
 
-              {/* Price */}
-              <div className="flex items-end gap-3">
-                <span className="text-3xl font-extrabold text-primary sm:text-4xl">
-                  R$ {formatPrice(product.price)}
-                </span>
-                {product.originalPrice && (
-                  <span className="mb-1 text-lg text-muted-foreground line-through">
-                    R$ {formatPrice(product.originalPrice)}
+              {/* Price - PIX (main) */}
+              <div className="flex items-center gap-3 rounded-lg border border-[hsl(var(--whatsapp))]/30 bg-[hsl(var(--whatsapp))]/5 px-4 py-3">
+                <span className="rounded bg-[hsl(var(--whatsapp))] px-2 py-0.5 text-xs font-bold text-[#0a0a0a]">PIX</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-extrabold text-[hsl(var(--whatsapp))] sm:text-3xl">
+                    R$ {formatPrice(product.price)}
                   </span>
-                )}
-                {discount > 0 && (
-                  <span className="mb-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                    -{discount}%
-                  </span>
-                )}
+                  {product.originalPrice && (
+                    <span className="text-sm text-muted-foreground line-through">
+                      R$ {formatPrice(product.originalPrice)}
+                    </span>
+                  )}
+                  {discount > 0 && (
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+                      -{discount}%
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Installments */}
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                ou <strong className="text-foreground">3x de R$ {formatPrice(installments)}</strong> sem juros
-              </p>
-
-              {/* Pix discount */}
-              <div className="mt-4 flex items-center gap-2 rounded-lg border border-[hsl(var(--whatsapp))]/30 bg-[hsl(var(--whatsapp))]/5 px-4 py-2.5">
-                <span className="text-sm font-bold text-[hsl(var(--whatsapp))]">PIX</span>
-                <span className="text-sm text-foreground">
-                  <strong>R$ {formatPrice(product.price * 0.95)}</strong>{" "}
-                  <span className="text-muted-foreground">com 5% de desconto</span>
-                </span>
-              </div>
+              {/* Cartao + installments */}
+              {product.cardPrice && (
+                <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-4 py-2.5">
+                  <span className="rounded bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">CARTAO</span>
+                  <span className="text-sm text-foreground">
+                    <strong>R$ {formatPrice(product.cardPrice)}</strong>{" "}
+                    <span className="text-muted-foreground">ou <strong className="text-foreground">3x de R$ {formatPrice(product.cardPrice / 3)}</strong> sem juros</span>
+                  </span>
+                </div>
+              )}
 
               {/* Divider */}
               <div className="my-5 border-t border-border" />
@@ -335,13 +341,63 @@ function ProductDetailContent() {
                   <Package className="h-5 w-5 shrink-0 text-primary" />
                   <div>
                     <p className="text-xs font-bold text-foreground">Pague com Pix</p>
-                    <p className="text-[10px] text-muted-foreground">5% de desconto</p>
+                    <p className="text-[10px] text-muted-foreground">Melhor preco</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Nutritional Table Images */}
+        {product.nutritionalImages && product.nutritionalImages.length > 0 && (
+          <section className="border-t border-border py-12">
+            <div className="mx-auto max-w-7xl px-4 lg:px-8">
+              <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
+                Tabela <span className="text-primary">Nutricional</span>
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {product.nutritionalImages.map((img, idx) => (
+                  <a
+                    key={idx}
+                    href={img}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group overflow-hidden rounded-xl border border-border bg-secondary/30 transition-all hover:border-primary/30"
+                  >
+                    <img
+                      src={img}
+                      alt={`Tabela nutricional ${idx + 1} - ${product.name}`}
+                      className="h-auto w-full object-contain transition-transform group-hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Video */}
+        {product.videoUrl && (
+          <section className="border-t border-border bg-secondary/30 py-12">
+            <div className="mx-auto max-w-4xl px-4 lg:px-8">
+              <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
+                Saiba <span className="text-primary">Mais</span>
+              </h2>
+              <div className="overflow-hidden rounded-2xl border border-border">
+                <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                  <iframe
+                    src={product.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
+                    title={`Video sobre ${product.name}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

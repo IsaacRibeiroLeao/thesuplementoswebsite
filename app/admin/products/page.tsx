@@ -23,10 +23,13 @@ interface ProductRow {
   brand: string
   description: string
   price: number
+  card_price: number | null
   original_price: number | null
   category: string
   badge: string | null
   image_url: string | null
+  nutritional_images: string[] | null
+  video_url: string | null
   in_stock: boolean
   active: boolean
   sort_order: number
@@ -37,10 +40,13 @@ const EMPTY_PRODUCT: Omit<ProductRow, "id"> = {
   brand: "",
   description: "",
   price: 0,
+  card_price: null,
   original_price: null,
   category: "massa",
   badge: null,
   image_url: null,
+  nutritional_images: null,
+  video_url: null,
   in_stock: true,
   active: true,
   sort_order: 0,
@@ -149,10 +155,13 @@ export default function AdminProductsPage() {
       brand: editing.brand.trim(),
       description: editing.description.trim(),
       price: editing.price,
-      original_price: editing.original_price || null,
+      card_price: editing.card_price != null && editing.card_price > 0 ? editing.card_price : null,
+      original_price: editing.original_price != null && editing.original_price > 0 ? editing.original_price : null,
       category: editing.category,
       badge: editing.badge?.trim() || null,
       image_url: editing.image_url,
+      nutritional_images: editing.nutritional_images?.length ? editing.nutritional_images : [],
+      video_url: editing.video_url?.trim() || null,
       in_stock: editing.in_stock,
       active: editing.active,
       sort_order: editing.sort_order,
@@ -302,7 +311,7 @@ export default function AdminProductsPage() {
               </div>
               <div>
                 <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Preco (R$) *
+                  Preco PIX / A vista (R$) *
                 </label>
                 <input
                   type="number"
@@ -315,13 +324,26 @@ export default function AdminProductsPage() {
               </div>
               <div>
                 <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Preco Cartao (R$)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editing.card_price ?? ""}
+                  onChange={(e) => { const v = e.target.value; setEditing({ ...editing, card_price: v === '' ? null : parseFloat(v) }) }}
+                  className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                  placeholder="134.90"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Preco original (R$)
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   value={editing.original_price ?? ""}
-                  onChange={(e) => setEditing({ ...editing, original_price: parseFloat(e.target.value) || null })}
+                  onChange={(e) => { const v = e.target.value; setEditing({ ...editing, original_price: v === '' ? null : parseFloat(v) }) }}
                   className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
                   placeholder="149.90"
                 />
@@ -384,6 +406,20 @@ export default function AdminProductsPage() {
                 </label>
               </div>
 
+              {/* Video URL */}
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  URL do Video (YouTube)
+                </label>
+                <input
+                  type="text"
+                  value={editing.video_url ?? ""}
+                  onChange={(e) => setEditing({ ...editing, video_url: e.target.value || null })}
+                  className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+              </div>
+
               {/* Image upload */}
               <div className="sm:col-span-2">
                 <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -422,6 +458,63 @@ export default function AdminProductsPage() {
                     PNG ou JPG. Aparece na listagem e na pagina do produto.
                   </p>
                 </div>
+              </div>
+
+              {/* Nutritional images */}
+              <div className="sm:col-span-2">
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Imagens da Tabela Nutricional (ate 4)
+                </label>
+                <div className="flex flex-wrap items-center gap-3">
+                  {(editing.nutritional_images ?? []).map((url, idx) => (
+                    <div key={idx} className="relative">
+                      <img
+                        src={url}
+                        alt={`Nutricional ${idx + 1}`}
+                        className="h-20 w-20 rounded-lg border border-border object-contain bg-secondary/30"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const imgs = [...(editing.nutritional_images ?? [])]
+                          // Remove from storage
+                          const path = url.split("/products/").pop()
+                          if (path) supabase.storage.from("products").remove([`products/${path}`])
+                          imgs.splice(idx, 1)
+                          setEditing({ ...editing, nutritional_images: imgs.length ? imgs : null })
+                        }}
+                        className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {(editing.nutritional_images ?? []).length < 4 && (
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground">
+                      <Upload className="h-4 w-4" />
+                      Adicionar
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          const ext = file.name.split(".").pop()
+                          const path = `products/nutri_${Date.now()}.${ext}`
+                          const { error } = await supabase.storage.from("products").upload(path, file)
+                          if (error) { alert("Erro: " + error.message); return }
+                          const { data: urlData } = supabase.storage.from("products").getPublicUrl(path)
+                          const imgs = [...(editing.nutritional_images ?? []), urlData.publicUrl]
+                          setEditing({ ...editing, nutritional_images: imgs })
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Fotos da tabela nutricional do produto. Aparecem na pagina de vendas.
+                </p>
               </div>
             </div>
 
