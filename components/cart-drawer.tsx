@@ -23,6 +23,7 @@ export function CartDrawer() {
     saveFavorite,
     loadFavorite,
     deleteFavorite,
+    userAddress,
   } = useCart()
   const { user } = useAuth()
   const [showFavInput, setShowFavInput] = useState(false)
@@ -272,6 +273,29 @@ export function CartDrawer() {
                   R$ {formatPrice(totalPrice)}
                 </span>
               </div>
+
+              {/* Address warning */}
+              {!userAddress && user && (
+                <a
+                  href="/profile"
+                  className="mb-3 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2.5 text-xs text-yellow-500 transition-colors hover:bg-yellow-500/20"
+                >
+                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Adicione seu endereco para facilitar a entrega</span>
+                </a>
+              )}
+
+              {userAddress && (
+                <div className="mb-3 rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Entregar em</p>
+                  <p className="text-xs text-foreground">
+                    {userAddress.street}, {userAddress.number} · {userAddress.neighborhood}
+                  </p>
+                </div>
+              )}
 
               <button
                 type="button"

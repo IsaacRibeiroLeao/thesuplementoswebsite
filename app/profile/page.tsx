@@ -30,6 +30,8 @@ import {
   Star,
   Send,
   MessageSquare,
+  MapPin,
+  Save,
 } from "lucide-react"
 
 interface OrderItem {
@@ -61,12 +63,25 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; ico
 function ProfileContent() {
   const router = useRouter()
   const { user, loading: authLoading, signIn, signUp, signOut, isAdmin } = useAuth()
-  const { favorites, loadFavorite, deleteFavorite, setIsOpen } = useCart()
+  const { favorites, loadFavorite, deleteFavorite, setIsOpen, userAddress, saveUserAddress } = useCart()
 
   const [orders, setOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"orders" | "favorites">("orders")
+  const [activeTab, setActiveTab] = useState<"orders" | "favorites" | "address">("orders")
+
+  // Address form state
+  const [addressForm, setAddressForm] = useState({
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    cep: "",
+  })
+  const [addressSaving, setAddressSaving] = useState(false)
+  const [addressMsg, setAddressMsg] = useState("")
 
   // Review state
   const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null)
@@ -378,7 +393,32 @@ function ProfileContent() {
             }`}
           >
             <Heart className="h-4 w-4" />
-            Favoritos ({favorites.length})
+            Favoritos
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("address")
+              if (userAddress) {
+                setAddressForm({
+                  street: userAddress.street,
+                  number: userAddress.number,
+                  complement: userAddress.complement,
+                  neighborhood: userAddress.neighborhood,
+                  city: userAddress.city,
+                  state: userAddress.state,
+                  cep: userAddress.cep,
+                })
+              }
+            }}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+              activeTab === "address"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MapPin className="h-4 w-4" />
+            Endereco
           </button>
         </div>
 
@@ -655,6 +695,162 @@ function ProfileContent() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Address tab */}
+        {activeTab === "address" && (
+          <div className="mt-6">
+            <div className="rounded-xl border border-border bg-card p-6">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <MapPin className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Endereco de Entrega</h2>
+                  <p className="text-xs text-muted-foreground">Este endereco sera enviado junto com seu pedido no WhatsApp</p>
+                </div>
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setAddressSaving(true)
+                  setAddressMsg("")
+                  const { error } = await saveUserAddress(addressForm)
+                  setAddressSaving(false)
+                  if (error) {
+                    setAddressMsg(`Erro: ${error}`)
+                  } else {
+                    setAddressMsg("Endereco salvo com sucesso!")
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Rua / Avenida *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.street}
+                      onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="Rua das Flores"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Numero *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.number}
+                      onChange={(e) => setAddressForm({ ...addressForm, number: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="123"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Complemento
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.complement}
+                      onChange={(e) => setAddressForm({ ...addressForm, complement: e.target.value })}
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="Apto 101, Bloco A"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Bairro *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.neighborhood}
+                      onChange={(e) => setAddressForm({ ...addressForm, neighborhood: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="Centro"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      CEP *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.cep}
+                      onChange={(e) => setAddressForm({ ...addressForm, cep: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="64000-000"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Cidade *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.city}
+                      onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="Teresina"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Estado *
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.state}
+                      onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                      required
+                      maxLength={2}
+                      className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                      placeholder="PI"
+                    />
+                  </div>
+                </div>
+
+                {addressMsg && (
+                  <p className={`text-sm font-medium ${addressMsg.startsWith("Erro") ? "text-destructive" : "text-[hsl(var(--whatsapp))]"}`}>
+                    {addressMsg}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={addressSaving}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  {addressSaving ? "Salvando..." : "Salvar Endereco"}
+                </button>
+              </form>
+
+              {userAddress && (
+                <div className="mt-6 rounded-lg border border-[hsl(var(--whatsapp))]/30 bg-[hsl(var(--whatsapp))]/5 p-4">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[hsl(var(--whatsapp))]">Endereco atual salvo</p>
+                  <p className="text-sm text-foreground">
+                    {userAddress.street}, {userAddress.number}
+                    {userAddress.complement && ` - ${userAddress.complement}`}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {userAddress.neighborhood} · {userAddress.city} - {userAddress.state}
+                  </p>
+                  <p className="text-sm text-muted-foreground">CEP: {userAddress.cep}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

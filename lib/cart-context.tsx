@@ -21,6 +21,17 @@ export interface FavoriteOrder {
   created_at: string
 }
 
+export interface UserAddress {
+  id: string
+  street: string
+  number: string
+  complement: string
+  neighborhood: string
+  city: string
+  state: string
+  cep: string
+}
+
 interface CartContextType {
   items: CartItem[]
   isOpen: boolean
@@ -39,6 +50,9 @@ interface CartContextType {
   saveFavorite: (name: string) => Promise<{ error: string | null }>
   loadFavorite: (fav: FavoriteOrder) => void
   deleteFavorite: (id: string) => Promise<void>
+  userAddress: UserAddress | null
+  saveUserAddress: (address: Omit<UserAddress, "id">) => Promise<{ error: string | null }>
+  fetchUserAddress: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -48,6 +62,7 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
   const [items, setItems] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [lastOrder, setLastOrder] = useState<CartItem[] | null>(null)
+  const [userAddress, setUserAddress] = useState<UserAddress | null>(null)
   const [favorites, setFavorites] = useState<FavoriteOrder[]>([])
 
   const addItem = useCallback((newItem: Omit<CartItem, "quantity">) => {
@@ -98,10 +113,18 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
       message += "\n\n"
     })
 
-    message += `---\n*Total: R$ ${formatPrice(totalPrice)}*\n\nVi os produtos no site e gostaria de fechar o pedido!`
+    message += `---\n*Total: R$ ${formatPrice(totalPrice)}*`
+
+    if (userAddress) {
+      message += `\n\n*Endereco de entrega:*\n${userAddress.street}, ${userAddress.number}`
+      if (userAddress.complement) message += ` - ${userAddress.complement}`
+      message += `\n${userAddress.neighborhood}\n${userAddress.city} - ${userAddress.state}\nCEP: ${userAddress.cep}`
+    }
+
+    message += `\n\nVi os produtos no site e gostaria de fechar o pedido!`
 
     return getWhatsAppLink(message)
-  }, [items, totalPrice])
+  }, [items, totalPrice, userAddress])
 
   const fetchLastOrder = useCallback(async () => {
     if (!user) {
@@ -148,10 +171,78 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
     }
   }, [user])
 
+  const fetchUserAddress = useCallback(async () => {
+    if (!user) {
+      setUserAddress(null)
+      return
+    }
+    const { data } = await supabase
+      .from("user_addresses" as any)
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+
+    if (data) {
+      setUserAddress({
+        id: (data as any).id,
+        street: (data as any).street || "",
+        number: (data as any).number || "",
+        complement: (data as any).complement || "",
+        neighborhood: (data as any).neighborhood || "",
+        city: (data as any).city || "",
+        state: (data as any).state || "",
+        cep: (data as any).cep || "",
+      })
+    } else {
+      setUserAddress(null)
+    }
+  }, [user])
+
+  const saveUserAddress = useCallback(async (address: Omit<UserAddress, "id">): Promise<{ error: string | null }> => {
+    if (!user) return { error: "Voce precisa estar logado para salvar o endereco." }
+
+    // Check if address exists
+    if (userAddress) {
+      const { error } = await (supabase.from("user_addresses" as any) as any)
+        .update({
+          street: address.street,
+          number: address.number,
+          complement: address.complement,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+          cep: address.cep,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userAddress.id)
+
+      if (error) return { error: error.message }
+    } else {
+      const { error } = await (supabase.from("user_addresses" as any) as any).insert({
+        user_id: user.id,
+        street: address.street,
+        number: address.number,
+        complement: address.complement,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        cep: address.cep,
+      })
+
+      if (error) return { error: error.message }
+    }
+
+    await fetchUserAddress()
+    return { error: null }
+  }, [user, userAddress, fetchUserAddress])
+
   useEffect(() => {
     fetchLastOrder()
     fetchFavorites()
-  }, [fetchLastOrder, fetchFavorites])
+    fetchUserAddress()
+  }, [fetchLastOrder, fetchFavorites, fetchUserAddress])
 
   const loadLastOrder = useCallback(() => {
     if (!lastOrder || lastOrder.length === 0) return
@@ -236,8 +327,11 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
       saveFavorite,
       loadFavorite,
       deleteFavorite,
+      userAddress,
+      saveUserAddress,
+      fetchUserAddress,
     }),
-    [items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, getWhatsAppCheckoutLink, sendOrder, lastOrder, loadLastOrder, favorites, saveFavorite, loadFavorite, deleteFavorite]
+    [items, isOpen, setIsOpen, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, getWhatsAppCheckoutLink, sendOrder, lastOrder, loadLastOrder, favorites, saveFavorite, loadFavorite, deleteFavorite, userAddress, saveUserAddress, fetchUserAddress]
   )
 
   return (
